@@ -5,6 +5,7 @@ const app = require("../app");
 const request = require("supertest");
 const data = require('../db/data/test-data/index')
 const seed = require("../db/seeds/seed");
+const { string } = require("pg-format");
 /* Set up your beforeEach & afterAll functions here */
 
 beforeAll(() => {
@@ -68,12 +69,21 @@ describe("GET request with parametric endpoint", () => {
       });
   });
 });
-test("404: Responds with an array of topics", () => {
+test("404: Responds with an error message when the correct data type is requested but is currently non existent", () => {
   return request(app)
-    .get('/api/articles/999')
+    .get('/api/article/999')
     .expect(404)
     .then((response) => {
-      expect(response.body.msg).toBe("Not Found");
+      expect(response.body.msg).toBe("Article not found");
     });
 });
+test("400: Responds with a bad request when a non suitable input request is made i.e not a number", () => {
+  return request(app)
+    .get('/api/article/abde')
+    .expect(400)
+    .then((response) => {
+      expect(response.body.msg).toBe("bad request, not a valid input");
+    });
 });
+})
+
