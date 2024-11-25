@@ -48,3 +48,32 @@ test("404: endpoint not available", () => {
     });
 });
 });
+describe("GET request with parametric endpoint", () => {
+  test("200: Responds with an array of topics", () => {
+    return request(app)
+      .get('/api/article/1')
+      .expect(200)
+      .then((response) => {
+      const articles = response.body.article
+          articles.map((article) => {
+          expect(article.article_id).toEqual(1)
+          expect(typeof article.title).toEqual('string');
+          expect(typeof article.body).toEqual('string');
+          expect(typeof article.body).toEqual('string');
+          expect(typeof article.author).toEqual('string')
+          expect(typeof article.created_at).toEqual('string')
+          expect(typeof article.votes).toEqual('number')
+          expect(typeof article.article_img_url).toEqual('string')
+          
+      });
+  });
+});
+test("404: Responds with an array of topics", () => {
+  return request(app)
+    .get('/api/articles/999')
+    .expect(404)
+    .then((response) => {
+      expect(response.body.msg).toBe("Not Found");
+    });
+});
+});
