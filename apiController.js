@@ -1,27 +1,32 @@
 const endpointsJson = require("./endpoints.json");
 
-const { topicFinder, getById } = require("./api.model");
+const { topicFinder, getById, articleGetter } = require("./api.model");
 
 exports.getApi = (req, res, next) => {
   res.status(200).send({ endpoints: endpointsJson });
 };
 
 exports.getTopics = (req, res, next) => {
-  return topicFinder().then((topics) => {
-    res.status(200).send({ topics });
-  })
-  .catch((err) => {
-    next(err);
-  });
+  const path = req.path.split("/");
+  const endpoint = path[path.length - 1];
+  return topicFinder(endpoint)
+    .then((topics) => {
+      res.status(200).send({ topics });
+    })
 };
 
 exports.getArticle = (req, res, next) => {
-  const {article_id} = req.params
-  return getById(article_id).then((article) =>{
-    res.status(200).send({article})
-  })
-  .catch((err) => {
-    next(err);
-  });
+  const { article_id } = req.params;
+  if (isNaN(article_id)) {
+    return res.status(400).send({ msg: "bad request, not a valid input" });
+  }
+  return getById(article_id)
+    .then((article) => {
+      res.status(200).send({ article });
+    })
+    .catch((err) => {
+      next(err);
+    });
+};
 
-}
+
