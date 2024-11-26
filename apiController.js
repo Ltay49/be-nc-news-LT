@@ -1,6 +1,7 @@
 const endpointsJson = require("./endpoints.json");
 
-const { topicFinder, getById, articleGetter } = require("./api.model");
+const { topicFinder, getById, articleGetter, commentById } = require("./api.model");
+
 
 exports.getApi = (req, res, next) => {
   res.status(200).send({ endpoints: endpointsJson });
@@ -9,10 +10,9 @@ exports.getApi = (req, res, next) => {
 exports.getTopics = (req, res, next) => {
   const path = req.path.split("/");
   const endpoint = path[path.length - 1];
-  return topicFinder(endpoint)
-    .then((topics) => {
-      res.status(200).send({ topics });
-    })
+  return topicFinder(endpoint).then((topics) => {
+    res.status(200).send({ topics });
+  });
 };
 
 exports.getArticle = (req, res, next) => {
@@ -29,14 +29,25 @@ exports.getArticle = (req, res, next) => {
     });
 };
 
-exports.getArticles = (req, res) =>{
-    return articleGetter().then((articles)=>{
-        articles.forEach((article) =>{
-     article.comment_count = Number(article.comment_count)})
-    res.status(200).send(articles)
+exports.getArticles = (req, res) => {
+  return articleGetter()
+    .then((articles) => {
+      articles.forEach((article) => {
+        article.comment_count = Number(article.comment_count);
+      });
+      res.status(200).send(articles);
     })
     .catch((err) => {
       next(err);
     });
-}
+};
 
+exports.getCommentById = (req, res, next) => {
+   const {article_id} = req.params
+  return commentById(article_id).then((comments) => {
+    res.status(200).send(comments);
+  })
+  .catch((err) => {
+    next(err);
+  })
+};

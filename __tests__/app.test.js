@@ -119,3 +119,23 @@ describe("GET /api/articles", () => {
       });
   });
 });
+describe("GET /api/articles/:article_id/comments", () => {
+  test("200:responds with an array of comments", () => {
+    return request(app)
+      .get('/api/articles/1/comments')
+      .expect(200)
+      .then((response) => {
+        const body = response.text;
+        const commentArray = JSON.parse(body)
+        expect(Array.isArray(commentArray)).toBe(true);
+      })
+  });
+  test("404:responds with an error, this article_id does not exist yet", () => {
+    return request(app)
+      .get('/api/articles/19/comments')
+      .expect(404)
+        .then((response) => {
+          expect(response.body.msg).toBe("this id does not exist yet");
+        });
+    });
+});
