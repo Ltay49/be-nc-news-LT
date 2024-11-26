@@ -1,6 +1,7 @@
 const endpointsJson = require("./endpoints.json");
 
 const { topicFinder, getById, articleGetter, commentById } = require("./api.model");
+const {checkIdExists} = require ('./idChecker.model')
 
 
 exports.getApi = (req, res, next) => {
@@ -44,9 +45,17 @@ exports.getArticles = (req, res) => {
 
 exports.getCommentById = (req, res, next) => {
    const {article_id} = req.params
-  return commentById(article_id).then((comments) => {
+   console.log(article_id)
+    const promises = [commentById(article_id)];
+
+    if (article_id){
+        promises.push(checkIdExists(article_id))
+    }
+
+Promise.all(promises)
+.then(([comments])=>{
     res.status(200).send(comments);
-  })
+})
   .catch((err) => {
     next(err);
   })
