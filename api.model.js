@@ -48,3 +48,27 @@ ORDER BY
     return result.rows;
   });
 };
+
+exports.commentById = (article_id) =>{
+const query = `SELECT 
+comment_id,
+votes,
+created_at,
+author,
+body,
+article_id
+FROM comments
+WHERE article_id = $1
+ORDER BY created_at DESC;`
+;
+return db.query(query, [article_id]).then((result)=>{
+    if(result.rows.length === 0){
+        return Promise.reject({
+            status: 404,
+            msg: "this id does not exist yet"
+        })
+    }
+    console.log(result.rows)
+    return result.rows
+})
+}
