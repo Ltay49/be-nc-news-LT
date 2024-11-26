@@ -132,10 +132,19 @@ describe("GET /api/articles/:article_id/comments", () => {
   });
   test("404:responds with an error, this article_id does not exist yet", () => {
     return request(app)
-      .get('/api/articles/19/comments')
+      .get('/api/articles/100/comments')
       .expect(404)
         .then((response) => {
-          expect(response.body.msg).toBe("this id does not exist yet");
+          expect(response.body.msg).toBe("this article does not exist yet");
         });
     });
 });
+test("404:responds with an error, this article_id does not have any comments", () => {
+  return request(app)
+    .get('/api/articles/2/comments')
+    .expect(404)
+      .then((response) => {
+        expect(response.body.msg).toBe("this article does not have any comments");
+      });
+  });
+
