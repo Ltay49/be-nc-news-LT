@@ -29,4 +29,14 @@ exports.getArticle = (req, res, next) => {
     });
 };
 
+exports.getArticles = (req, res) =>{
+    return articleGetter().then((articles)=>{
+        articles.forEach((article) =>{
+     article.comment_count = Number(article.comment_count)})
+    res.status(200).send(articles)
+    })
+    .catch((err) => {
+      next(err);
+    });
+}
 

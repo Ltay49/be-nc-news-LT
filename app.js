@@ -8,6 +8,7 @@ app.get("/api/topics", getTopics);
 
 app.get("/api/article/:article_id", getArticle);
 
+app.get("/api/articles", getArticles)
 
 app.use((err, req, res, next) => {
   if (err.status && err.msg) {
