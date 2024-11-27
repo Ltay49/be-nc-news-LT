@@ -60,7 +60,6 @@ describe("GET request with parametric endpoint", () => {
           expect(article.article_id).toEqual(1);
           expect(typeof article.title).toEqual("string");
           expect(typeof article.body).toEqual("string");
-          expect(typeof article.body).toEqual("string");
           expect(typeof article.author).toEqual("string");
           expect(typeof article.created_at).toEqual("string");
           expect(typeof article.votes).toEqual("number");
@@ -209,25 +208,60 @@ describe("POST /api/articles/:article_id/comments", () => {
   });
 });
 
-// describe("PATCH REQUEST/api/articles/:article_id", () => {
-//   test("204: update the votes in articles", () => {
-//     const newVote = { inc_votes: 1 };
-//     const expectedObject = {
-//       author: "butter_bridge",
-//       title: "Living in the shadow of a great man",
-//       article_id: 1,
-//       topic: expect.any(String),
-//       created_at: expect.any(String),
-//       votes: 101,
-//       article_img_url: expect.any(String),
-//       comment_count: expect.any(Number),
-//     };
-//     return request(app)
-//       .patch("/api/articles/1")
-//       .send(newVote)
-//       .expect(204)
-//       .then((response) => {
-//         expect(response.body).toMatchObject(expectedObject);
-//       });
-//   });
-// });
+describe("PATCH REQUEST/api/articles/:article_id", () => {
+  test("200: update the votes in articles (+)", () => {
+    const newVote = { inc_votes: 1 };
+    const expectedArticle1 = {
+        article_id: 1,
+        title: 'Living in the shadow of a great man',
+        topic: 'mitch',
+        author: 'butter_bridge',
+        body: 'I find this existence challenging',
+        created_at: '2020-07-09T20:11:00.000Z',
+        votes: 101,
+        article_img_url: 'https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700'
+      }
+    return request(app)
+      .patch("/api/articles/1")
+      .send(newVote)
+      .expect(200)
+      .then((response) => {
+        console.log(response.body);
+        expect(response.body).toMatchObject(expectedArticle1);
+        expect(response.body.votes).toBe(101);
+      });
+  });
+  test("200: update the votes in articles (-)", () => {
+    const newVote = { inc_votes: -1 };
+    const expectedArticle1 = {
+      article_id: 1,
+      title: 'Living in the shadow of a great man',
+      topic: 'mitch',
+      author: 'butter_bridge',
+      body: 'I find this existence challenging',
+      created_at: '2020-07-09T20:11:00.000Z',
+      votes: 100,
+      article_img_url: 'https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700'
+    }
+    return request(app)
+      .patch("/api/articles/1")
+      .send(newVote)
+      .expect(200)
+      .then((response) => {
+        expect(response.body).toMatchObject(expectedArticle1);
+        expect(response.body.votes).toBe(100);; // i have put 100 as the test before simulates an increase in articled 1
+      });
+  });
+  test("400: not a valid vote input", () => {
+    const newVote = { inc_votes: "a" };
+    return request(app)
+      .patch("/api/articles/1")
+      .send(newVote)
+      .expect(400)
+      .then((response) => {
+        expect(response.body.msg).toBe(
+          "bad request: not a valid vote input, try again"
+        );
+      });
+  });
+});
