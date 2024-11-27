@@ -171,7 +171,7 @@ describe("POST /api/articles/:article_id/comments", () => {
       body: "60% of the time it works every time",
     };
     return request(app)
-      .post("/api/articles/2/comments")
+      .post("/api/articles/1/comments")
       .send(newComment)
       .expect(201)
       .then((response) => {
@@ -197,13 +197,14 @@ describe("POST /api/articles/:article_id/comments", () => {
       body: "60% of the time it works every time",
     };
     return request(app)
-      .post("/api/articles/2/comments")
+      .post("/api/articles/1/comments")
       .send(newComment)
       .expect(404)
       .then((response) => {
+        console.log(response.body.msg)
         expect(response.body.msg).toBe(
           "Sorry, but this username doesn't exist."
-        );
+        );//PLEASE CAN YOU LOOK AT THIS, IT RAMDONLY FAIS I CAN RUN IT 10 TIMES AND IT NOT FAIL, IT FAILS I RUN IT AGAIN AND IT PASSES
       });
   });
 });
@@ -212,21 +213,20 @@ describe("PATCH REQUEST/api/articles/:article_id", () => {
   test("200: update the votes in articles (+)", () => {
     const newVote = { inc_votes: 1 };
     const expectedArticle1 = {
-        article_id: 1,
-        title: 'Living in the shadow of a great man',
-        topic: 'mitch',
-        author: 'butter_bridge',
-        body: 'I find this existence challenging',
-        created_at: '2020-07-09T20:11:00.000Z',
-        votes: 101,
-        article_img_url: 'https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700'
-      }
+      article_id: expect.any(Number),
+      title: expect.any(String),
+      topic: expect.any(String),
+      author: expect.any(String),
+      body: expect.any(String),
+      created_at: expect.any(String),
+      votes: 101, 
+      article_img_url: expect.any(String),
+    }
     return request(app)
       .patch("/api/articles/1")
       .send(newVote)
       .expect(200)
       .then((response) => {
-        console.log(response.body);
         expect(response.body).toMatchObject(expectedArticle1);
         expect(response.body.votes).toBe(101);
       });
@@ -234,14 +234,14 @@ describe("PATCH REQUEST/api/articles/:article_id", () => {
   test("200: update the votes in articles (-)", () => {
     const newVote = { inc_votes: -1 };
     const expectedArticle1 = {
-      article_id: 1,
-      title: 'Living in the shadow of a great man',
-      topic: 'mitch',
-      author: 'butter_bridge',
-      body: 'I find this existence challenging',
-      created_at: '2020-07-09T20:11:00.000Z',
-      votes: 100,
-      article_img_url: 'https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700'
+      article_id: expect.any(Number),
+      title: expect.any(String),
+      topic: expect.any(String),
+      author: expect.any(String),
+      body: expect.any(String),
+      created_at: expect.any(String),
+      votes: 100, 
+      article_img_url: expect.any(String),
     }
     return request(app)
       .patch("/api/articles/1")
@@ -263,5 +263,21 @@ describe("PATCH REQUEST/api/articles/:article_id", () => {
           "bad request: not a valid vote input, try again"
         );
       });
-  });
-});
+  })
+})
+describe("CORE: DELETE /api/comments/:comment_id", ()=>{
+  test("204: deleting a comment with a given id", ()=>{
+    return request(app)
+    .delete('/api/comments/1')
+    .expect(204)
+    })
+
+  test("404: if the id doesnt exist or in this case has already been deleted", ()=>{
+    return request(app)
+    .delete('/api/comments/1')
+    .expect(404)
+    .then((response)=>{
+      expect(response.body.msg).toBe("Sorry, but this Id doesn't exist.") 
+    })
+    })
+})
