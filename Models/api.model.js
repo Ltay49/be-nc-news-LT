@@ -79,27 +79,42 @@ exports.postNewComment = ({ username, body }, article_id) => {
 };
 
 exports.votePatchAdd = (article_id, inc_votes) => {
-  return db.query(`
+  return db
+    .query(
+      `
     UPDATE articles
     SET votes = votes + $1
     WHERE article_id = $2
     RETURNING *;
-  `, [inc_votes, article_id])
-  .then((result) => {
-    return result.rows[0]
-  })
-}
+  `,
+      [inc_votes, article_id]
+    )
+    .then((result) => {
+      return result.rows[0];
+    });
+};
 
 exports.votePatchMinus = (article_id, inc_votes) => {
-  const adjustedVotes = Math.abs(inc_votes)
-  console.log(inc_votes)
-  return db.query(`
+  const adjustedVotes = Math.abs(inc_votes);
+  return db
+    .query(
+      `
     UPDATE articles
     SET votes = votes - $1
     WHERE article_id = $2
     RETURNING *;
-  `, [adjustedVotes, article_id])
-  .then((result) => {
-    return result.rows[0]
-  })
+  `,
+      [adjustedVotes, article_id]
+    )
+    .then((result) => {
+      return result.rows[0];
+    });
+};
+
+exports.deleteById = (comments_id) => {
+  return db.query(`DELETE FROM comments
+    WHERE comment_id = $1`,[comments_id])
+    .then((result)=>{
+      return result
+})
 }

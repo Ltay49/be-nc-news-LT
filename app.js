@@ -8,6 +8,7 @@ const {
   getCommentById,
   postComment,
   patchVotes,
+  deleteComment
 } = require("./apiController");
 
 app.get("/api", getApi);
@@ -24,6 +25,7 @@ app.get("/api/articles/:article_id/comments", getCommentById);
 app.use(express.json());
 app.post("/api/articles/:article_id/comments", postComment);
 
+app.delete('/api/comments/:comments_id', deleteComment)
 
 
 
@@ -39,3 +41,4 @@ app.all("*", (req, res, next) => {
 });
 
 module.exports = app;
+ 

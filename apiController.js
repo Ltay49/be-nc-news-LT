@@ -8,9 +8,11 @@ const {
   postNewComment,
   votePatchAdd,
   votePatchMinus,
+  deleteById,
 } = require("./Models/api.model");
 const { userNameChecker } = require("./Models/userNameChecker.model");
 const { checkIdExists } = require("./Models/idChecker.model");
+const { commentIdExists } = require("./Models/commentIdChecker");
 
 exports.getApi = (req, res, next) => {
   res.status(200).send({ endpoints: endpointsJson });
@@ -103,7 +105,9 @@ exports.patchVotes = (req, res, next) => {
   const { inc_votes } = req.body;
 
   if (isNaN(inc_votes)) {
-    return res.status(400).send({ msg: "bad request: not a valid vote input, try again" });
+    return res
+      .status(400)
+      .send({ msg: "bad request: not a valid vote input, try again" });
   }
 
   if (inc_votes < 0) {
@@ -119,4 +123,20 @@ exports.patchVotes = (req, res, next) => {
     .catch((err) => {
       next(err);
     });
+};
+
+exports.deleteComment = (req, res, next) => {
+  const { comments_id } = req.params;
+  const commentIdInt = parseInt(comments_id)
+
+return commentIdExists(commentIdInt)
+ .then(()=>{
+    return deleteById(commentIdInt)
+ })
+.then(()=>{
+    res.status(204).send()
+})
+  .catch((err) => {
+    next(err);
+  });
 };
