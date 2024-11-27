@@ -1,4 +1,4 @@
-const db = require("./db/connection");
+const db = require("../db/connection");
 
 exports.topicFinder = (endpoint) => {
   const query = `SELECT * FROM ${endpoint}`;
@@ -49,8 +49,8 @@ ORDER BY
   });
 };
 
-exports.commentById = (article_id) =>{
-const query = `SELECT 
+exports.commentById = (article_id) => {
+  const query = `SELECT 
 comment_id,
 votes,
 created_at,
@@ -59,16 +59,21 @@ body,
 article_id
 FROM comments
 WHERE article_id = $1
-ORDER BY created_at DESC;`
-;
-return db.query(query, [article_id]).then((result)=>{
-    if(result.rows.length === 0){
-        return Promise.reject({
-            status: 404,
-            msg: "this article does not have any comments"
-        })
-    }
-    console.log(result.rows)
-    return result.rows
-})
-}
+ORDER BY created_at DESC;`;
+  return db.query(query, [article_id]).then(({rows}) => {
+    return rows;
+  });
+};
+
+exports.postNewComment = ({ username, body }, article_id) => {
+  return db
+    .query(
+      `INSERT INTO comments (author, body, article_id) 
+       VALUES ($1, $2, $3) 
+       RETURNING author AS username, body`,
+      [username, body, article_id]
+    )
+    .then((result) => {
+      return result.rows[0];
+    });
+};

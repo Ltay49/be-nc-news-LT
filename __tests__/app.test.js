@@ -45,7 +45,7 @@ describe("GET /api/topics", () => {
       .get("/api/snails")
       .expect(404)
       .then((response) => {
-        expect(response.body.msg).toBe("Not Found");
+        expect(response.body.msg).toBe("Route Not Found");
       });
   });
 });
@@ -92,59 +92,117 @@ describe("GET /api/articles", () => {
       .expect(200)
       .then((response) => {
         const body = response.text;
-        const articelArray = JSON.parse(body)
-        expect(Array.isArray(articelArray)).toBe(true);
-        articelArray.forEach((article) => {
-          expect(typeof article.author).toBe("string");
-          expect(typeof article.title).toBe("string");
-          expect(typeof article.article_id).toBe("number");
-          expect(typeof article.topic).toBe("string");
-          expect(typeof article.created_at).toBe("string");
-          expect(typeof article.votes).toBe("number");
-          expect(typeof article.article_img_url).toBe("string");
-          expect(typeof article.comment_count).toBe("number");
+        const articleArray = JSON.parse(body);
+        expect(Array.isArray(articleArray)).toBe(true);
+        const expectedArticleShape = {
+          author: expect.any(String),
+          title: expect.any(String),
+          article_id: expect.any(Number),
+          topic: expect.any(String),
+          created_at: expect.any(String),
+          votes: expect.any(Number),
+          article_img_url: expect.any(String),
+          comment_count: expect.any(Number),
+        };
+
+        articleArray.forEach((article) => {
+          expect(article).toMatchObject(expectedArticleShape);
         });
       });
   });
-  test("200:check if array is ordered in DESC order - convert date string to numbers ", () => {
+  test("200:check if array is ordered in DESC order ", () => {
     return request(app)
       .get("/api/articles")
       .expect(200)
       .then((response) => {
         const body = response.text;
-        const articelArray = JSON.parse(body)
-        expect(
-          articelArray.map((a) => (a.created_at = new Date(a.created_at).getTime()))
-        ).toBeSorted({ descending: true });
+        const articelArray = JSON.parse(body);
+        expect(articelArray.map((a) => a.created_at)).toBeSorted({
+          descending: true,
+        });
       });
   });
 });
 describe("GET /api/articles/:article_id/comments", () => {
   test("200:responds with an array of comments", () => {
     return request(app)
-      .get('/api/articles/1/comments')
+      .get("/api/articles/1/comments")
       .expect(200)
       .then((response) => {
         const body = response.text;
-        const commentArray = JSON.parse(body)
+        const commentArray = JSON.parse(body);
+        const expected = {
+          comment_id: expect.any(Number),
+          votes: expect.any(Number),
+          created_at: expect.any(String),
+          author: expect.any(String),
+          body: expect.any(String),
+          article_id: expect.any(Number),
+        };
+        commentArray.forEach((comment) => {
+          expect(comment).toMatchObject(expected);
+        });
         expect(Array.isArray(commentArray)).toBe(true);
-      })
+      });
   });
   test("404:responds with an error, this article_id does not exist yet", () => {
     return request(app)
-      .get('/api/articles/100/comments')
+      .get("/api/articles/100/comments")
       .expect(404)
-        .then((response) => {
-          expect(response.body.msg).toBe("this article does not exist yet");
-        });
-    });
-});
-test("404:responds with an error, this article_id does not have any comments", () => {
-  return request(app)
-    .get('/api/articles/2/comments')
-    .expect(404)
       .then((response) => {
-        expect(response.body.msg).toBe("this article does not have any comments");
+        expect(response.body.msg).toBe("this article id does not exist yet");
       });
   });
-
+  test("200:valid input, with a recognised id, but reponds with empty array and appropiate message", () => {
+    return request(app)
+      .get("/api/articles/2/comments")
+      .expect(200)
+      .then((response) => {
+        expect(response.body.msg).toBe(
+          "this article does not have any comments"
+        );
+        expect(response.body.comments).toEqual([]);
+      });
+  });
+});
+describe("POST /api/articles/:article_id/comments", () => {
+  test("201:responds with an object, a comment with properties of username and body", () => {
+    const newComment = {
+      username: "butter_bridge",
+      body: "60% of the time it works every time",
+    };
+    return request(app)
+      .post("/api/articles/2/comments")
+      .send(newComment)
+      .expect(201)
+      .then((response) => {
+        expect(response.body).toEqual(
+          expect.objectContaining({
+            username: newComment.username,
+            body: newComment.body,
+          })
+        );
+      });
+  });
+test("404:responds with an error, this article_id does not exist yet", () => {
+  return request(app)
+    .post("/api/articles/100/comments")
+    .expect(404)
+    .then((response) => {
+      expect(response.body.msg).toBe("this article id does not exist yet");
+    });
+});
+test("404:responds with an error, this username does not exist yet", () => {
+  const newComment = {
+    username: "RonBurgundy",
+    body: "60% of the time it works every time",
+  };
+  return request(app)
+    .post("/api/articles/2/comments")
+    .send(newComment)
+    .expect(404)
+    .then((response) => {
+      expect(response.body.msg).toBe("Sorry, but this username doesn't exist.");
+    });
+});
+})

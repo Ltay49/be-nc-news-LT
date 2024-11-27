@@ -1,8 +1,14 @@
 const endpointsJson = require("./endpoints.json");
 
-const { topicFinder, getById, articleGetter, commentById } = require("./api.model");
-const {checkIdExists} = require ('./idChecker.model')
-
+const {
+  topicFinder,
+  getById,
+  articleGetter,
+  commentById,
+  postNewComment,
+} = require("./Models/api.model");
+const {userNameChecker} = require('./Models/userNameChecker.model')
+const { checkIdExists } = require("./Models/idChecker.model");
 
 exports.getApi = (req, res, next) => {
   res.status(200).send({ endpoints: endpointsJson });
@@ -44,19 +50,46 @@ exports.getArticles = (req, res) => {
 };
 
 exports.getCommentById = (req, res, next) => {
-   const {article_id} = req.params
-   console.log(article_id)
-    const promises = [commentById(article_id)];
+  const { article_id } = req.params;
+  const promises = [commentById(article_id)];
 
-    if (article_id){
-        promises.push(checkIdExists(article_id))
-    }
+  if (article_id) {
+    promises.push(checkIdExists(article_id));
+  }
 
-Promise.all(promises)
-.then(([comments])=>{
-    res.status(200).send(comments);
-})
+  Promise.all(promises)
+    .then(([comments]) => {
+      if (comments.length === 0) {
+        return res.status(200).send({
+          msg: "this article does not have any comments",
+          comments
+        });
+      }
+      res.status(200).send(comments);
+    })
+    .catch((err) => {
+      next(err);
+    });
+};
+
+exports.postComment = (req, res, next) => {
+  const { article_id } = req.params;
+  const newComment = req.body;
+  const promises = [postNewComment(newComment,article_id)];
+
+  if (newComment.username) {
+    promises.push(userNameChecker({ username: newComment.username }));
+  }
+
+  if (article_id) {
+    promises.push(checkIdExists(article_id));
+  }
+
+  Promise.all(promises)
+  .then(([post]) => { {
+    res.status(201).send(post);}
+  })
   .catch((err) => {
     next(err);
-  })
+  });
 };
