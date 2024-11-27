@@ -184,25 +184,50 @@ describe("POST /api/articles/:article_id/comments", () => {
         );
       });
   });
-test("404:responds with an error, this article_id does not exist yet", () => {
-  return request(app)
-    .post("/api/articles/100/comments")
-    .expect(404)
-    .then((response) => {
-      expect(response.body.msg).toBe("this article id does not exist yet");
-    });
+  test("404:responds with an error, this article_id does not exist yet", () => {
+    return request(app)
+      .post("/api/articles/100/comments")
+      .expect(404)
+      .then((response) => {
+        expect(response.body.msg).toBe("this article id does not exist yet");
+      });
+  });
+  test("404:responds with an error, this username does not exist yet", () => {
+    const newComment = {
+      username: "RonBurgundy",
+      body: "60% of the time it works every time",
+    };
+    return request(app)
+      .post("/api/articles/2/comments")
+      .send(newComment)
+      .expect(404)
+      .then((response) => {
+        expect(response.body.msg).toBe(
+          "Sorry, but this username doesn't exist."
+        );
+      });
+  });
 });
-test("404:responds with an error, this username does not exist yet", () => {
-  const newComment = {
-    username: "RonBurgundy",
-    body: "60% of the time it works every time",
-  };
-  return request(app)
-    .post("/api/articles/2/comments")
-    .send(newComment)
-    .expect(404)
-    .then((response) => {
-      expect(response.body.msg).toBe("Sorry, but this username doesn't exist.");
-    });
-});
-})
+
+// describe("PATCH REQUEST/api/articles/:article_id", () => {
+//   test("204: update the votes in articles", () => {
+//     const newVote = { inc_votes: 1 };
+//     const expectedObject = {
+//       author: "butter_bridge",
+//       title: "Living in the shadow of a great man",
+//       article_id: 1,
+//       topic: expect.any(String),
+//       created_at: expect.any(String),
+//       votes: 101,
+//       article_img_url: expect.any(String),
+//       comment_count: expect.any(Number),
+//     };
+//     return request(app)
+//       .patch("/api/articles/1")
+//       .send(newVote)
+//       .expect(204)
+//       .then((response) => {
+//         expect(response.body).toMatchObject(expectedObject);
+//       });
+//   });
+// });

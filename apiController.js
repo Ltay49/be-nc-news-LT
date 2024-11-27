@@ -6,8 +6,9 @@ const {
   articleGetter,
   commentById,
   postNewComment,
+  patchVote,
 } = require("./Models/api.model");
-const {userNameChecker} = require('./Models/userNameChecker.model')
+const { userNameChecker } = require("./Models/userNameChecker.model");
 const { checkIdExists } = require("./Models/idChecker.model");
 
 exports.getApi = (req, res, next) => {
@@ -62,7 +63,7 @@ exports.getCommentById = (req, res, next) => {
       if (comments.length === 0) {
         return res.status(200).send({
           msg: "this article does not have any comments",
-          comments
+          comments,
         });
       }
       res.status(200).send(comments);
@@ -75,7 +76,7 @@ exports.getCommentById = (req, res, next) => {
 exports.postComment = (req, res, next) => {
   const { article_id } = req.params;
   const newComment = req.body;
-  const promises = [postNewComment(newComment,article_id)];
+  const promises = [postNewComment(newComment, article_id)];
 
   if (newComment.username) {
     promises.push(userNameChecker({ username: newComment.username }));
@@ -86,10 +87,12 @@ exports.postComment = (req, res, next) => {
   }
 
   Promise.all(promises)
-  .then(([post]) => { {
-    res.status(201).send(post);}
-  })
-  .catch((err) => {
-    next(err);
-  });
+    .then(([post]) => {
+      {
+        res.status(201).send(post);
+      }
+    })
+    .catch((err) => {
+      next(err);
+    });
 };
