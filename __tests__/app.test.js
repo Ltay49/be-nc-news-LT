@@ -272,7 +272,7 @@ describe("CORE: DELETE /api/comments/:comment_id", ()=>{
     .expect(204)
     })
 
-  test("404: deleting a comment with a given id", ()=>{
+  test("404: if the id doesnt exist or in this case has already been deleted", ()=>{
     return request(app)
     .delete('/api/comments/1')
     .expect(404)
