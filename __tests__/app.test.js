@@ -8,13 +8,9 @@ const seed = require("../db/seeds/seed");
 require("jest-sorted");
 /* Set up your beforeEach & afterAll functions here */
 
-beforeAll(() => {
-  return seed(data);
-});
+beforeAll( () => seed(data) )
 
-afterAll(() => {
-  db.end();
-});
+afterAll( () => db.end() )
 
 describe("GET: /api", () => {
   test("200: Responds with an object detailing the documentation for each endpoint", () => {
@@ -31,8 +27,8 @@ describe("GET: /api/topics", () => {
     return request(app)
       .get("/api/topics")
       .expect(200)
-      .then((response) => {
-        const topics = response.body.topics;
+      .then(({body:{topics}}) => {
+        // const topics = response.body.topics;
         expect(topics.length).toBe(3);
         topics.forEach((topic) => {
           expect(typeof topic.description).toBe("string");
