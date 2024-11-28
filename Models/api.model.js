@@ -118,3 +118,10 @@ exports.deleteById = (comments_id) => {
       return result
 })
 }
+
+exports.getUser = () => {
+  return db.query(`SELECT * FROM users`)
+  .then((users)=>{
+    return users.rows
+  })
+}
