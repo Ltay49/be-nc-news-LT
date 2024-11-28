@@ -9,10 +9,12 @@ const {
   votePatchAdd,
   votePatchMinus,
   deleteById,
+  getUser
 } = require("./Models/api.model");
 const { userNameChecker } = require("./Models/userNameChecker.model");
 const { checkIdExists } = require("./Models/idChecker.model");
 const { commentIdExists } = require("./Models/commentIdChecker");
+const { columnSorter } = require ("./Models/columnSorter")
 
 exports.getApi = (req, res, next) => {
   res.status(200).send({ endpoints: endpointsJson });
@@ -40,7 +42,19 @@ exports.getArticle = (req, res, next) => {
     });
 };
 
-exports.getArticles = (req, res) => {
+exports.getArticles = (req, res, next) => {
+   const { sort_by, order_by } = req.query
+   if (sort_by ){
+
+    return columnSorter(sort_by,order_by).then((sorted) =>{
+        sorted.forEach((article) => {
+            article.comment_count = Number(article.comment_count);
+          });
+          res.status(200).send(sorted);
+
+    })
+
+   }
   return articleGetter()
     .then((articles) => {
       articles.forEach((article) => {
@@ -140,3 +154,12 @@ return commentIdExists(commentIdInt)
     next(err);
   });
 };
+
+exports.getUsers = (req, res, next) => {
+
+    return getUser().then((result)=>{
+        res.status(200).send(result)
+    })
+    
+
+}

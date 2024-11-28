@@ -16,7 +16,7 @@ afterAll(() => {
   db.end();
 });
 
-describe("GET /api", () => {
+describe("GET: /api", () => {
   test("200: Responds with an object detailing the documentation for each endpoint", () => {
     return request(app)
       .get("/api")
@@ -26,7 +26,7 @@ describe("GET /api", () => {
       });
   });
 });
-describe("GET /api/topics", () => {
+describe("GET: /api/topics", () => {
   test("200: Responds with an array of topics", () => {
     return request(app)
       .get("/api/topics")
@@ -49,7 +49,7 @@ describe("GET /api/topics", () => {
       });
   });
 });
-describe("GET request with parametric endpoint", () => {
+describe("GET: request with parametric endpoint", () => {
   test("200: Responds with an array of topics", () => {
     return request(app)
       .get("/api/article/1")
@@ -84,7 +84,7 @@ describe("GET request with parametric endpoint", () => {
       });
   });
 });
-describe("GET /api/articles", () => {
+describe("GET: /api/articles", () => {
   test("200:responds with an articles array of article objects ", () => {
     return request(app)
       .get("/api/articles")
@@ -122,7 +122,7 @@ describe("GET /api/articles", () => {
       });
   });
 });
-describe("GET /api/articles/:article_id/comments", () => {
+describe("GET: /api/articles/:article_id/comments", () => {
   test("200:responds with an array of comments", () => {
     return request(app)
       .get("/api/articles/1/comments")
@@ -164,7 +164,7 @@ describe("GET /api/articles/:article_id/comments", () => {
       });
   });
 });
-describe("POST /api/articles/:article_id/comments", () => {
+describe("POST: /api/articles/:article_id/comments", () => {
   test("201:responds with an object, a comment with properties of username and body", () => {
     const newComment = {
       username: "butter_bridge",
@@ -201,15 +201,15 @@ describe("POST /api/articles/:article_id/comments", () => {
       .send(newComment)
       .expect(404)
       .then((response) => {
-        console.log(response.body.msg)
+        console.log(response.body.msg);
         expect(response.body.msg).toBe(
           "Sorry, but this username doesn't exist."
-        );//PLEASE CAN YOU LOOK AT THIS, IT RAMDONLY FAIS I CAN RUN IT 10 TIMES AND IT NOT FAIL, IT FAILS I RUN IT AGAIN AND IT PASSES
+        ); //PLEASE CAN YOU LOOK AT THIS, IT RAMDONLY FAIS I CAN RUN IT 10 TIMES AND IT NOT FAIL, IT FAILS I RUN IT AGAIN AND IT PASSES
       });
   });
 });
 
-describe("PATCH REQUEST/api/articles/:article_id", () => {
+describe("PATCH: REQUEST/api/articles/:article_id", () => {
   test("200: update the votes in articles (+)", () => {
     const newVote = { inc_votes: 1 };
     const expectedArticle1 = {
@@ -219,9 +219,9 @@ describe("PATCH REQUEST/api/articles/:article_id", () => {
       author: expect.any(String),
       body: expect.any(String),
       created_at: expect.any(String),
-      votes: 101, 
+      votes: 101,
       article_img_url: expect.any(String),
-    }
+    };
     return request(app)
       .patch("/api/articles/1")
       .send(newVote)
@@ -240,16 +240,16 @@ describe("PATCH REQUEST/api/articles/:article_id", () => {
       author: expect.any(String),
       body: expect.any(String),
       created_at: expect.any(String),
-      votes: 100, 
+      votes: 100,
       article_img_url: expect.any(String),
-    }
+    };
     return request(app)
       .patch("/api/articles/1")
       .send(newVote)
       .expect(200)
       .then((response) => {
         expect(response.body).toMatchObject(expectedArticle1);
-        expect(response.body.votes).toBe(100);; // i have put 100 as the test before simulates an increase in articled 1
+        expect(response.body.votes).toBe(100); // i have put 100 as the test before simulates an increase in articled 1
       });
   });
   test("400: not a valid vote input", () => {
@@ -263,21 +263,183 @@ describe("PATCH REQUEST/api/articles/:article_id", () => {
           "bad request: not a valid vote input, try again"
         );
       });
-  })
-})
-describe("CORE: DELETE /api/comments/:comment_id", ()=>{
-  test("204: deleting a comment with a given id", ()=>{
-    return request(app)
-    .delete('/api/comments/1')
-    .expect(204)
-    })
+  });
+});
+describe("DELETE: /api/comments/:comment_id", () => {
+  test("204: deleting a comment with a given id", () => {
+    return request(app).delete("/api/comments/1").expect(204);
+  });
 
-  test("404: if the id doesnt exist or in this case has already been deleted", ()=>{
+  test("404: if the id doesnt exist or in this case has already been deleted", () => {
     return request(app)
-    .delete('/api/comments/1')
-    .expect(404)
-    .then((response)=>{
-      expect(response.body.msg).toBe("Sorry, but this Id doesn't exist.") 
-    })
-    })
-})
+      .delete("/api/comments/1")
+      .expect(404)
+      .then((response) => {
+        expect(response.body.msg).toBe("Sorry, but this Id doesn't exist.");
+      });
+  });
+});
+describe("GET: /api/users", () => {
+  test("200: respons with an array of objects", () => {
+    return request(app)
+      .get("/api/users")
+      .expect(200)
+      .then((response) => {
+        const users = response.body;
+        users.map((user) => {
+          expect(typeof user.username).toBe("string");
+          expect(typeof user.name).toBe("string");
+          expect(typeof user.avatar_url).toBe("string");
+          expect(Object.keys(user)).toEqual(
+            expect.arrayContaining(["username", "name", "avatar_url"])
+          );
+          expect(Object.keys(user)).toHaveLength(3);
+        });
+      });
+  });
+});
+describe("GET /api/articles - sorting queries", () => {
+  test("200: SORT_BY. default = sorted_by created_at date / DESC", () => {
+    return request(app)
+      .get("/api/articles?sort_by=created_at&order_by=DESC")
+      .expect(200)
+      .then((response) => {
+        const articles = response.body;
+        expect(articles.map((a) => a.created_at)).toBeSorted({
+          descending: true,
+        });
+      });
+  });
+  test("200: SORT_BY. default = sorted_by created_at date / ASC", () => {
+    return request(app)
+      .get("/api/articles?sort_by=created_at&order_by=ASC")
+      .expect(200)
+      .then((response) => {
+        const articles = response.body;
+        expect(articles.map((a) => a.created_at)).toBeSorted({
+          descending: false,
+        });
+      });
+  });
+  test("200: SORT_BY. = sorted_by title / DESC", () => {
+    return request(app)
+      .get("/api/articles?sort_by=title&order_by=DESC")
+      .expect(200)
+      .then((response) => {
+        const articles = response.body;
+        expect(articles.map((a) => a.title)).toBeSorted({
+          descending: true,
+        });
+      });
+  });
+  test("200: SORT_BY. = sorted_by title / ASC", () => {
+    return request(app)
+      .get("/api/articles?sort_by=title&order_by=ASC")
+      .expect(200)
+      .then((response) => {
+        const articles = response.body;
+        expect(articles.map((a) => a.title)).toBeSorted({
+          descending: false,
+        });
+      });
+  });
+  test("200: SORT_BY. = sorted_by topic / DESC", () => {
+    return request(app)
+      .get("/api/articles?sort_by=topic&order_by=DESC")
+      .expect(200)
+      .then((response) => {
+        const articles = response.body;
+        expect(articles.map((a) => a.topic)).toBeSorted({
+          descending: true,
+        });
+      });
+  });
+  test("200: SORT_BY. = sorted_by topic / ASC", () => {
+    return request(app)
+      .get("/api/articles?sort_by=topic&order_by=ASC")
+      .expect(200)
+      .then((response) => {
+        const articles = response.body;
+        expect(articles.map((a) => a.topic)).toBeSorted({
+          descending: false,
+        });
+      });
+  });
+  test("200: SORT_BY. = sorted_by article_img_url / DESC", () => {
+    return request(app)
+      .get("/api/articles?sort_by=article_img_url&order_by=DESC")
+      .expect(200)
+      .then((response) => {
+        const articles = response.body;
+        expect(articles.map((a) => a.article_img_url)).toBeSorted({
+          descending: true,
+        });
+      });
+  });
+  test("200: SORT_BY. = sorted_by article_img_url / ASC", () => {
+    return request(app)
+      .get("/api/articles?sort_by=article_img_url&order_by=ASC")
+      .expect(200)
+      .then((response) => {
+        const articles = response.body;
+        expect(articles.map((a) => a.article_img_url)).toBeSorted({
+          descending: false,
+        });
+      });
+  });
+  // test("200: SORT_BY. = sorted_by votes", () => {
+  //   return request(app)
+  //     .get("/api/articles?sort_by=votes")
+  //     .expect(200)
+  //     .then((response) => {
+  //       const articles = response.body;
+  //       expect(articles.map((a) => a.votes)).toBeSorted({
+  //         descending: true,
+  //       });
+  //     });
+  // });
+  // test("200: SORT_BY. = sorted_by comment_count", () => {
+  //   return request(app)
+  //     .get("/api/articles?sort_by=comment_count")
+  //     .expect(200)
+  //     .then((response) => {
+  //       const articles = response.body;
+  //       expect(articles.map((a) => a.comment_count)).toBeSorted({
+  //         descending: true,
+  //       });
+  //     });
+  // });
+  // test("200: SORT_BY. = sorted_by article_id", () => {
+  //   return request(app)
+  //     .get("/api/articles?sort_by=article_id")
+  //     .expect(200)
+  //     .then((response) => {
+  //       const articles = response.body;
+  //       expect(articles.map((a) => a.article_id)).toBeSorted({
+  //         descending: true,
+  //       });
+  //     });
+  // });
+  // test("200: SORT_BY. = sorted_by author", () => {
+  //   return request(app)
+  //     .get("/api/articles?sort_by=author")
+  //     .expect(200)
+  //     .then((response) => {
+  //       const articles = response.body;
+  //       expect(articles.map((a) => a.author)).toBeSorted({
+  //         descending: true,
+  //       });
+  //     });
+  // });
+  // test("200: ORDER_BY. default = sorted_by author", () => {
+  //   return request(app)
+  //     .get("/api/articles?sort_by=author")
+  //     .expect(200)
+  //     .then((response) => {
+  //       const articles = response.body;
+  //       expect(articles.map((a) => a.author)).toBeSorted({
+  //         descending: true,
+  //       });
+  //     });
+  // });
+});
