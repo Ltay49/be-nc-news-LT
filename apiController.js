@@ -9,12 +9,14 @@ const {
   votePatchAdd,
   votePatchMinus,
   deleteById,
-  getUser
+  getUser,
 } = require("./Models/api.model");
 const { userNameChecker } = require("./Models/userNameChecker.model");
 const { checkIdExists } = require("./Models/idChecker.model");
 const { commentIdExists } = require("./Models/commentIdChecker");
-const { columnSorter } = require ("./Models/columnSorter")
+const { columnSorter } = require("./Models/columnSorter");
+const { topicFilter } = require("./Models/topicFilter");
+const { returnAllTopics } = require("./Models/returnAllTopics");
 
 exports.getApi = (req, res, next) => {
   res.status(200).send({ endpoints: endpointsJson });
@@ -43,18 +45,35 @@ exports.getArticle = (req, res, next) => {
 };
 
 exports.getArticles = (req, res, next) => {
-   const { sort_by, order_by } = req.query
-   if (sort_by ){
-
-    return columnSorter(sort_by,order_by).then((sorted) =>{
+  const { sort_by, order_by, topic, search} = req.query;
+  if (sort_by) {
+    return columnSorter(sort_by, order_by)
+      .then((sorted) => {
         sorted.forEach((article) => {
-            article.comment_count = Number(article.comment_count);
-          });
-          res.status(200).send(sorted);
+          article.comment_count = Number(article.comment_count);
+        });
+        res.status(200).send(sorted);
+      })
+      .catch((err) => {
+        next(err);
+      });
+  }
 
+  if(search && !topic){
+    return returnAllTopics(search).then((result)=>{
+        res.status(200).send(result)
     })
+  }
 
-   }
+  if (topic) {
+    return topicFilter(search,topic).then((result)=>{
+        res.status(200).send(result)
+    })
+    .catch((err) => {
+        next(err);
+      });
+  }
+
   return articleGetter()
     .then((articles) => {
       articles.forEach((article) => {
@@ -93,18 +112,8 @@ exports.getCommentById = (req, res, next) => {
 exports.postComment = (req, res, next) => {
   const { article_id } = req.params;
   const newComment = req.body;
-  const promises = [postNewComment(newComment, article_id)];
-
-  if (newComment.username) {
-    promises.push(userNameChecker({ username: newComment.username }));
-  }
-
-  if (article_id) {
-    promises.push(checkIdExists(article_id));
-  }
-
-  Promise.all(promises)
-    .then(([post]) => {
+  return postNewComment(newComment, article_id)
+    .then((post) => {
       {
         res.status(201).send(post);
       }
@@ -141,25 +150,22 @@ exports.patchVotes = (req, res, next) => {
 
 exports.deleteComment = (req, res, next) => {
   const { comments_id } = req.params;
-  const commentIdInt = parseInt(comments_id)
+  const commentIdInt = parseInt(comments_id);
 
-return commentIdExists(commentIdInt)
- .then(()=>{
-    return deleteById(commentIdInt)
- })
-.then(()=>{
-    res.status(204).send()
-})
-  .catch((err) => {
-    next(err);
-  });
+  return commentIdExists(commentIdInt)
+    .then(() => {
+      return deleteById(commentIdInt);
+    })
+    .then(() => {
+      res.status(204).send();
+    })
+    .catch((err) => {
+      next(err);
+    });
 };
 
 exports.getUsers = (req, res, next) => {
-
-    return getUser().then((result)=>{
-        res.status(200).send(result)
-    })
-    
-
-}
+  return getUser().then((result) => {
+    res.status(200).send(result);
+  });
+};

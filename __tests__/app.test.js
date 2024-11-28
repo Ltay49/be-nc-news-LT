@@ -8,9 +8,9 @@ const seed = require("../db/seeds/seed");
 require("jest-sorted");
 /* Set up your beforeEach & afterAll functions here */
 
-beforeAll( () => seed(data) )
+beforeEach(() => seed(data));
 
-afterAll( () => db.end() )
+afterAll(() => db.end());
 
 describe("GET: /api", () => {
   test("200: Responds with an object detailing the documentation for each endpoint", () => {
@@ -27,7 +27,7 @@ describe("GET: /api/topics", () => {
     return request(app)
       .get("/api/topics")
       .expect(200)
-      .then(({body:{topics}}) => {
+      .then(({ body: { topics } }) => {
         // const topics = response.body.topics;
         expect(topics.length).toBe(3);
         topics.forEach((topic) => {
@@ -197,10 +197,9 @@ describe("POST: /api/articles/:article_id/comments", () => {
       .send(newComment)
       .expect(404)
       .then((response) => {
-        console.log(response.body.msg);
         expect(response.body.msg).toBe(
           "Sorry, but this username doesn't exist."
-        ); //PLEASE CAN YOU LOOK AT THIS, IT RAMDONLY FAIS I CAN RUN IT 10 TIMES AND IT NOT FAIL, IT FAILS I RUN IT AGAIN AND IT PASSES
+        );
       });
   });
 });
@@ -236,7 +235,7 @@ describe("PATCH: REQUEST/api/articles/:article_id", () => {
       author: expect.any(String),
       body: expect.any(String),
       created_at: expect.any(String),
-      votes: 100,
+      votes: 99,
       article_img_url: expect.any(String),
     };
     return request(app)
@@ -245,7 +244,7 @@ describe("PATCH: REQUEST/api/articles/:article_id", () => {
       .expect(200)
       .then((response) => {
         expect(response.body).toMatchObject(expectedArticle1);
-        expect(response.body.votes).toBe(100); // i have put 100 as the test before simulates an increase in articled 1
+        expect(response.body.votes).toBe(99); // i have put 100 as the test before simulates an increase in articled 1
       });
   });
   test("400: not a valid vote input", () => {
@@ -266,9 +265,9 @@ describe("DELETE: /api/comments/:comment_id", () => {
     return request(app).delete("/api/comments/1").expect(204);
   });
 
-  test("404: if the id doesnt exist or in this case has already been deleted", () => {
+  test("404: a comment_id that doesnt exist", () => {
     return request(app)
-      .delete("/api/comments/1")
+      .delete("/api/comments/100")
       .expect(404)
       .then((response) => {
         expect(response.body.msg).toBe("Sorry, but this Id doesn't exist.");
@@ -383,59 +382,55 @@ describe("GET /api/articles - sorting queries", () => {
         });
       });
   });
-  // test("200: SORT_BY. = sorted_by votes", () => {
-  //   return request(app)
-  //     .get("/api/articles?sort_by=votes")
-  //     .expect(200)
-  //     .then((response) => {
-  //       const articles = response.body;
-  //       expect(articles.map((a) => a.votes)).toBeSorted({
-  //         descending: true,
-  //       });
-  //     });
-  // });
-  // test("200: SORT_BY. = sorted_by comment_count", () => {
-  //   return request(app)
-  //     .get("/api/articles?sort_by=comment_count")
-  //     .expect(200)
-  //     .then((response) => {
-  //       const articles = response.body;
-  //       expect(articles.map((a) => a.comment_count)).toBeSorted({
-  //         descending: true,
-  //       });
-  //     });
-  // });
-  // test("200: SORT_BY. = sorted_by article_id", () => {
-  //   return request(app)
-  //     .get("/api/articles?sort_by=article_id")
-  //     .expect(200)
-  //     .then((response) => {
-  //       const articles = response.body;
-  //       expect(articles.map((a) => a.article_id)).toBeSorted({
-  //         descending: true,
-  //       });
-  //     });
-  // });
-  // test("200: SORT_BY. = sorted_by author", () => {
-  //   return request(app)
-  //     .get("/api/articles?sort_by=author")
-  //     .expect(200)
-  //     .then((response) => {
-  //       const articles = response.body;
-  //       expect(articles.map((a) => a.author)).toBeSorted({
-  //         descending: true,
-  //       });
-  //     });
-  // });
-  // test("200: ORDER_BY. default = sorted_by author", () => {
-  //   return request(app)
-  //     .get("/api/articles?sort_by=author")
-  //     .expect(200)
-  //     .then((response) => {
-  //       const articles = response.body;
-  //       expect(articles.map((a) => a.author)).toBeSorted({
-  //         descending: true,
-  //       });
-  //     });
-  // });
+  test("404: SORT_BY. no such catagory exists", () => {
+    return request(app)
+      .get("/api/articles?sort_by=trainers&order_by=ASC")
+      .expect(404)
+      .then((response) => {
+        expect(response.body.msg).toBe(
+          "articles does not have this catagory to sort by"
+        );
+      });
+  });
 });
+describe("GET: /api/articles (topic query)", () => {
+  test("200: using ILIKE which will return the results regardless of case", () => {
+    return request(app)
+      .get("/api/articles?search=topic&&topic=MITCH")
+      .expect(200)
+      .then((result) => {
+        const articles = result.body;
+        articles.map((a) => {
+          expect(a.topic).toEqual("mitch");
+        });
+      });
+  });
+  test("200: using ILIKE as well as % to match topics that are simailar to the request ", () => {
+    return request(app)
+      .get("/api/articles?search=topic&&topic=CaT")
+      .expect(200)
+      .then((result) => {
+        const articles = result.body;
+        articles.map((a) => {
+          expect(a.topic).toEqual("cats");
+        });
+      });
+  });
+  test("200: will respond with the full array of topics if the filter value is missing", () => {
+    return request(app)
+      .get("/api/articles?search=topic")
+      .expect(200)
+      .then((result) => {
+        const articles = result.body
+          expect(articles).toHaveLength(13);
+        });
+      });
+  test("404: if a topic is searched for that doesn't exist", () => {
+    return request(app)
+      .get("/api/articles?search=topic&&topic=elephant")
+      .expect(404)
+      .then((result)=>{
+          expect(result.body.msg).toEqual("there are no topics called elephant");
+        });
+      })
+    })

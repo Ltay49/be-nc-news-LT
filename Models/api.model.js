@@ -62,8 +62,9 @@ WHERE article_id = $1
 ORDER BY created_at DESC;`;
   return db.query(query, [article_id]).then(({ rows }) => {
     return rows;
-  });
-};
+  })
+
+  }
 
 exports.postNewComment = ({ username, body }, article_id) => {
   return db
