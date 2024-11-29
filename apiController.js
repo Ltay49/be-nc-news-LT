@@ -11,7 +11,7 @@ const {
   deleteById,
   getUser,
 } = require("./Models/api.model");
-const { userNameChecker } = require("./Models/userNameChecker.model");
+const { getByIdColumnCount } = require("./Models/getByIdColumnCount");
 const { checkIdExists } = require("./Models/idChecker.model");
 const { commentIdExists } = require("./Models/commentIdChecker");
 const { columnSorter } = require("./Models/columnSorter");
@@ -37,7 +37,26 @@ exports.getArticle = (req, res, next) => {
   if (isNaN(article_id)) {
     return res.status(400).send({ msg: "bad request, not a valid input" });
   }
-  return getById(article_id, sum_of)
+  const validSumOfValues = ['comment_count']
+  if (sum_of && !validSumOfValues.includes(sum_of)) {
+    return res.status(400).send({ msg: "Bad request, no such value" });
+}
+
+  if (sum_of === "comment_count") {
+    return getByIdColumnCount(article_id)
+        .then((article) => {
+            article.forEach((a) => {
+              a.comment_count = Number(a.comment_count);
+            });
+            res.status(200).send({ article });
+        })
+        .catch((err) => {
+            console.log(err);
+            next(err);
+        });
+}
+
+  return getById(article_id)
     .then((article) => {
       res.status(200).send({ article });
     })

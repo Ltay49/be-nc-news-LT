@@ -421,22 +421,47 @@ describe("GET: /api/articles (topic query)", () => {
       .get("/api/articles?search=topic")
       .expect(200)
       .then((result) => {
-        const articles = result.body
-          expect(articles).toHaveLength(13);
-        });
+        const articles = result.body;
+        expect(articles).toHaveLength(13);
       });
+  });
   test("404: if a topic is searched for that doesn't exist", () => {
     return request(app)
       .get("/api/articles?search=topic&&topic=elephant")
       .expect(404)
-      .then((result)=>{
-          expect(result.body.msg).toEqual("there are no topics called elephant");
-        });
-      })
-    })
-describe('GET: /api/articles/:article_id (comment_count) adding a query to the endpoint',() =>{
-  test("200: returns an object which has the sum of the comment_count for that article_id", ()=>{
+      .then((result) => {
+        expect(result.body.msg).toEqual("there are no topics called elephant");
+      });
+  });
+});
+describe("GET: /api/articles/:article_id (comment_count) adding a query to the endpoint", () => {
+  test("200: returns an object which has the sum of the comment_count for that article_id", () => {
     return request(app)
-    .get('/api/articles/1?sum_of=comment_count')
+      .get("/api/articles/1?sum_of=comment_count")
+      .expect(200)
+      .then(({ body }) => {
+        const article = body.article;
+        const expectedArticleObject = {
+          author: expect.any(String),
+          title: expect.any(String),
+          article_id: 1,
+          topic: expect.any(String),
+          created_at: expect.any(String),
+          votes: expect.any(Number),
+          article_img_url: expect.any(String),
+          comment_count: expect.any(Number),
+        };
+        article.map((a) => {
+          expect(a).toMatchObject(expectedArticleObject);
+        });
+      });
+  });
+  test("400: Bad Request, sum_of value isnt comment_count",()=>{
+  return request(app)
+    .get("/api/articles/1?sum_of=hdhhd")
+    .expect(400)
+    .then(({ body }) => {
+      expect(body.msg).toEqual("Bad request, no such value");
+    });
   })
-})
+});
