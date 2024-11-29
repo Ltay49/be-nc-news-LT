@@ -8,9 +8,20 @@ exports.topicFinder = (endpoint) => {
 };
 
 exports.getById = (article_id) => {
-  const query = `SELECT article_id, title, body, topic, author, created_at, votes, article_img_url
-FROM articles
-WHERE article_id = $1;`;
+  const query = `SELECT 
+  articles.article_id, 
+  articles.title, 
+  articles.body, 
+  articles.topic, 
+  articles.author, 
+  articles.created_at, 
+  articles.votes, 
+  articles.article_img_url, 
+  COUNT(comments.comment_id) AS comment_count
+  FROM articles 
+  LEFT JOIN comments ON articles.article_id = comments.article_id
+  WHERE articles.article_id = $1
+  GROUP BY articles.article_id;`;
 
   return db.query(query, [article_id]).then((result) => {
     if (result.rows.length === 0) {
@@ -19,7 +30,7 @@ WHERE article_id = $1;`;
         msg: "Article not found",
       });
     }
-    return result.rows;
+    return result.rows[0];
   });
 };
 
@@ -33,15 +44,14 @@ exports.articleGetter = () => {
   articles.votes, 
   articles.article_img_url, 
   COALESCE(COUNT(comments.comment_id), 0) AS comment_count
-FROM 
-  articles
-LEFT JOIN 
+  FROM articles
+  LEFT JOIN 
   comments
-ON 
+  ON 
   articles.article_id = comments.article_id
-GROUP BY 
+  GROUP BY 
   articles.article_id
-ORDER BY 
+  ORDER BY 
   articles.created_at DESC;`;
 
   return db.query(query).then((result) => {

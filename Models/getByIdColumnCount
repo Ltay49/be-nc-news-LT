@@ -1,6 +1,7 @@
 const db = require("../db/connection");
 
 exports.getByIdColumnCount = (article_id) => {
+
     const query = `
         SELECT 
             articles.author, 

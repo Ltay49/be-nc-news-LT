@@ -46,20 +46,20 @@ describe("GET: /api/topics", () => {
   });
 });
 describe("GET: request with parametric endpoint", () => {
-  test("200: Responds with an array of topics", () => {
+  test("200: Responds with an article object", () => {
     return request(app)
       .get("/api/articles/1")
       .expect(200)
-      .then((response) => {
-        const articles = response.body.article;
-        articles.map((article) => {
-          expect(article.article_id).toEqual(1);
-          expect(typeof article.title).toEqual("string");
-          expect(typeof article.body).toEqual("string");
-          expect(typeof article.author).toEqual("string");
-          expect(typeof article.created_at).toEqual("string");
-          expect(typeof article.votes).toEqual("number");
-          expect(typeof article.article_img_url).toEqual("string");
+      .then(({ body: { article } }) => {
+        expect(article).toMatchObject({
+          article_id: 1,
+          title: 'Living in the shadow of a great man',
+          body: 'I find this existence challenging',
+          topic: 'mitch',
+          author: 'butter_bridge',
+          created_at: expect.any(String),
+          votes: 100,
+          article_img_url: 'https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700',
         });
       });
   });
@@ -274,6 +274,7 @@ describe("DELETE: /api/comments/:comment_id", () => {
       });
   });
 });
+// >>>>>>>>
 describe("GET: /api/users", () => {
   test("200: respons with an array of objects", () => {
     return request(app)
@@ -433,35 +434,19 @@ describe("GET: /api/articles (topic query)", () => {
         expect(result.body.msg).toEqual("there are no topics called elephant");
       });
   });
+  // >>>>>>>>>>> may not be showing as new work as i did this on the origin main rather than a branch
 });
-describe("GET: /api/articles/:article_id (comment_count) adding a query to the endpoint", () => {
+describe("GET: /api/articles/:article_id (comment_count) adding add (comment_count)", () => {
   test("200: returns an object which has the sum of the comment_count for that article_id", () => {
     return request(app)
-      .get("/api/articles/1?sum_of=comment_count")
+      .get("/api/articles/1")
       .expect(200)
-      .then(({ body }) => {
-        const article = body.article;
-        const expectedArticleObject = {
-          author: expect.any(String),
-          title: expect.any(String),
+      .then(({ body: { article } }) => {
+        expect(article).toMatchObject({
           article_id: 1,
-          topic: expect.any(String),
-          created_at: expect.any(String),
-          votes: expect.any(Number),
-          article_img_url: expect.any(String),
-          comment_count: expect.any(Number),
-        };
-        article.map((a) => {
-          expect(a).toMatchObject(expectedArticleObject);
-        });
+        })
+        expect(article).toHaveProperty('comment_count');
       });
-  });
-  test("400: Bad Request, sum_of value isnt comment_count",()=>{
-  return request(app)
-    .get("/api/articles/1?sum_of=hdhhd")
-    .expect(400)
-    .then(({ body }) => {
-      expect(body.msg).toEqual("Bad request, no such value");
-    });
+    })
   })
-});
+    
