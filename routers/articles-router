@@ -1,0 +1,10 @@
+const express = require("express");
+const { getArticle } = require("../controllers/getArticle");
+const { patchVotes } = require("../controllers/patchVotes");
+const { getArticles } = require("../controllers/getArticles");
+const articlesRouter = express.Router();
+
+articlesRouter.get("/:article_id", getArticle);
+articlesRouter.patch("/:article_id", patchVotes);
+articlesRouter.get("/", getArticles);
+module.exports = articlesRouter;

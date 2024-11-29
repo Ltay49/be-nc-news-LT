@@ -1,7 +1,7 @@
 const db = require("../db/connection");
 
-exports.topicFinder = (endpoint) => {
-  const query = `SELECT * FROM ${endpoint}`;
+exports.topicFinder = (path) => {
+  const query = `SELECT * FROM ${path}`;
   return db.query(query).then((result) => {
     return result.rows;
   });
