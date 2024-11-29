@@ -48,7 +48,7 @@ describe("GET: /api/topics", () => {
 describe("GET: request with parametric endpoint", () => {
   test("200: Responds with an array of topics", () => {
     return request(app)
-      .get("/api/article/1")
+      .get("/api/articles/1")
       .expect(200)
       .then((response) => {
         const articles = response.body.article;
@@ -65,7 +65,7 @@ describe("GET: request with parametric endpoint", () => {
   });
   test("404: Responds with an error message when the correct data type is requested but is currently non existent", () => {
     return request(app)
-      .get("/api/article/999")
+      .get("/api/articles/999")
       .expect(404)
       .then((response) => {
         expect(response.body.msg).toBe("Article not found");
@@ -73,7 +73,7 @@ describe("GET: request with parametric endpoint", () => {
   });
   test("400: Responds with a bad request when a non suitable input request is made i.e not a number", () => {
     return request(app)
-      .get("/api/article/abde")
+      .get("/api/articles/abde")
       .expect(400)
       .then((response) => {
         expect(response.body.msg).toBe("bad request, not a valid input");
@@ -293,7 +293,7 @@ describe("GET: /api/users", () => {
       });
   });
 });
-describe("GET /api/articles - sorting queries", () => {
+describe("GET: /api/articles - sorting queries", () => {
   test("200: SORT_BY. default = sorted_by created_at date / DESC", () => {
     return request(app)
       .get("/api/articles?sort_by=created_at&order_by=DESC")
@@ -434,3 +434,9 @@ describe("GET: /api/articles (topic query)", () => {
         });
       })
     })
+describe('GET: /api/articles/:article_id (comment_count) adding a query to the endpoint',() =>{
+  test("200: returns an object which has the sum of the comment_count for that article_id", ()=>{
+    return request(app)
+    .get('/api/articles/1?sum_of=comment_count')
+  })
+})

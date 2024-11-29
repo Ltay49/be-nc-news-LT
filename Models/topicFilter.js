@@ -11,4 +11,4 @@ return db.query(`SELECT * FROM articles WHERE ${search} ILIKE $1`,[`${topic}%`])
     }
     return result.rows
 })
-}
+} 

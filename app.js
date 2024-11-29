@@ -16,7 +16,7 @@ app.get("/api", getApi);
 
 app.get("/api/topics", getTopics);
 
-app.get("/api/article/:article_id", getArticle);
+app.get("/api/articles/:article_id", getArticle);
 app.use(express.json());
 app.patch("/api/articles/:article_id", patchVotes);
 
@@ -47,9 +47,8 @@ app.use((err, req, res, next) => {
   } else res.status(500).send({ msg: "Internal Server Error" });
 });
 
-app.all("*", (req, res, next) => {
+app.all("*", (req, res,) => {
   res.status(404).send({ msg: "Route Not Found" });
-  next(error);
 });
 
 module.exports = app;

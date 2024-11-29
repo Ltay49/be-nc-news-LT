@@ -7,7 +7,7 @@ exports.topicFinder = (endpoint) => {
   });
 };
 
-exports.getById = (article_id) => {
+exports.getById = (article_id, sum_of) => {
   const query = `SELECT article_id, title, body, topic, author, created_at, votes, article_img_url
 FROM articles
 WHERE article_id = $1;`;
@@ -62,9 +62,8 @@ WHERE article_id = $1
 ORDER BY created_at DESC;`;
   return db.query(query, [article_id]).then(({ rows }) => {
     return rows;
-  })
-
-  }
+  });
+};
 
 exports.postNewComment = ({ username, body }, article_id) => {
   return db
@@ -113,16 +112,19 @@ exports.votePatchMinus = (article_id, inc_votes) => {
 };
 
 exports.deleteById = (comments_id) => {
-  return db.query(`DELETE FROM comments
-    WHERE comment_id = $1`,[comments_id])
-    .then((result)=>{
-      return result
-})
-}
+  return db
+    .query(
+      `DELETE FROM comments
+    WHERE comment_id = $1`,
+      [comments_id]
+    )
+    .then((result) => {
+      return result;
+    });
+};
 
 exports.getUser = () => {
-  return db.query(`SELECT * FROM users`)
-  .then((users)=>{
-    return users.rows
-  })
-}
+  return db.query(`SELECT * FROM users`).then((users) => {
+    return users.rows;
+  });
+};
