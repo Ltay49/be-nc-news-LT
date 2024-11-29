@@ -11,6 +11,7 @@ const {
   deleteById,
   getUser,
 } = require("./Models/api.model");
+
 const { checkIdExists } = require("./Models/idChecker.model");
 const { commentIdExists } = require("./Models/commentIdChecker");
 const { columnSorter } = require("./Models/columnSorter");
@@ -19,14 +20,6 @@ const { returnAllTopics } = require("./Models/returnAllTopics");
 
 exports.getApi = (req, res, next) => {
   res.status(200).send({ endpoints: endpointsJson });
-};
-
-exports.getTopics = (req, res, next) => {
-  const path = req.path.split("/");
-  const endpoint = path[path.length - 1];
-  return topicFinder(endpoint).then((topics) => {
-    res.status(200).send({ topics });
-  });
 };
 
 exports.getArticle = (req, res, next) => {
@@ -45,48 +38,7 @@ exports.getArticle = (req, res, next) => {
     });
 };
 
-exports.getArticles = (req, res, next) => {
-  const { sort_by, order_by, topic, search } = req.query;
-  if (sort_by) {
-    return columnSorter(sort_by, order_by)
-      .then((sorted) => {
-        sorted.forEach((article) => {
-          article.comment_count = Number(article.comment_count);
-        });
-        res.status(200).send(sorted);
-      })
-      .catch((err) => {
-        next(err);
-      });
-  }
 
-  if (search && !topic) {
-    return returnAllTopics(search).then((result) => {
-      res.status(200).send(result);
-    });
-  }
-
-  if (topic) {
-    return topicFilter(search, topic)
-      .then((result) => {
-        res.status(200).send(result);
-      })
-      .catch((err) => {
-        next(err);
-      });
-  }
-
-  return articleGetter()
-    .then((articles) => {
-      articles.forEach((article) => {
-        article.comment_count = Number(article.comment_count);
-      });
-      res.status(200).send(articles);
-    })
-    .catch((err) => {
-      next(err);
-    });
-};
 
 exports.getCommentById = (req, res, next) => {
   const { article_id } = req.params;
@@ -125,30 +77,6 @@ exports.postComment = (req, res, next) => {
     });
 };
 
-exports.patchVotes = (req, res, next) => {
-  const { article_id } = req.params;
-  const { inc_votes } = req.body;
-
-  if (isNaN(inc_votes)) {
-    return res
-      .status(400)
-      .send({ msg: "bad request: not a valid vote input, try again" });
-  }
-
-  if (inc_votes < 0) {
-    return votePatchMinus(article_id, inc_votes).then((article) => {
-      res.status(200).send(article);
-    });
-  }
-
-  return votePatchAdd(article_id, inc_votes)
-    .then((article) => {
-      res.status(200).send(article);
-    })
-    .catch((err) => {
-      next(err);
-    });
-};
 
 exports.deleteComment = (req, res, next) => {
   const { comments_id } = req.params;

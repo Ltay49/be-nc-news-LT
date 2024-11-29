@@ -6,7 +6,7 @@ LINK:
 
 SUMMARY: This project is the early development of a website. Here i have developed the backend code. I have built this project using TTD, which accompnaies my end points, covering all eventualities ror a request.
 
-Starting from a local request 'app.get("/api", getApi)" i have built this application to be reseptive to to various different endpoints. This application communicates efficently to a SQL server and database, containg 4 seperate tables.
+Starting from a local request 'app.get("/api", getApi)" i have built this application to be reseptive to various different endpoints. This application communicates efficently to a SQL server and database, containg 4 seperate tables.
 
 The path of the requests follows a MVC structure
 
