@@ -7,7 +7,7 @@ exports.topicFinder = (endpoint) => {
   });
 };
 
-exports.getById = (article_id, sum_of) => {
+exports.getById = (article_id) => {
   const query = `SELECT article_id, title, body, topic, author, created_at, votes, article_img_url
 FROM articles
 WHERE article_id = $1;`;
