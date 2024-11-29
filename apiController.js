@@ -32,10 +32,12 @@ exports.getTopics = (req, res, next) => {
 
 exports.getArticle = (req, res, next) => {
   const { article_id } = req.params;
+  const { sum_of } = req.query;
+
   if (isNaN(article_id)) {
     return res.status(400).send({ msg: "bad request, not a valid input" });
   }
-  return getById(article_id)
+  return getById(article_id, sum_of)
     .then((article) => {
       res.status(200).send({ article });
     })
@@ -45,7 +47,7 @@ exports.getArticle = (req, res, next) => {
 };
 
 exports.getArticles = (req, res, next) => {
-  const { sort_by, order_by, topic, search} = req.query;
+  const { sort_by, order_by, topic, search } = req.query;
   if (sort_by) {
     return columnSorter(sort_by, order_by)
       .then((sorted) => {
@@ -59,17 +61,18 @@ exports.getArticles = (req, res, next) => {
       });
   }
 
-  if(search && !topic){
-    return returnAllTopics(search).then((result)=>{
-        res.status(200).send(result)
-    })
+  if (search && !topic) {
+    return returnAllTopics(search).then((result) => {
+      res.status(200).send(result);
+    });
   }
 
   if (topic) {
-    return topicFilter(search,topic).then((result)=>{
-        res.status(200).send(result)
-    })
-    .catch((err) => {
+    return topicFilter(search, topic)
+      .then((result) => {
+        res.status(200).send(result);
+      })
+      .catch((err) => {
         next(err);
       });
   }
