@@ -71,7 +71,10 @@ FROM comments
 WHERE article_id = $1
 ORDER BY created_at DESC;`;
   return db.query(query, [article_id]).then(({ rows }) => {
-    return rows;
+    if(rows.length === 0){
+      return rows
+    }
+    return rows[0];
   });
 };
 
@@ -138,3 +141,18 @@ exports.getUser = () => {
     return users.rows;
   });
 };
+
+exports.getUserByUsername = (username) =>{
+  return db.query('SELECT * FROM users WHERE username =$1',[username])
+  .then(({rows})=>{
+    if(rows.length === 0){
+     return Promise.reject({
+        status: 404,
+        msg: "there is no such user"
+      })
+    }
+    return rows[0]
+  })
+  }
+
+

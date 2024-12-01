@@ -1,16 +1,14 @@
 const express = require("express");
 const app = express();
 const {
-  getArticle,
-  getArticles,
   getCommentById,
   postComment,
-  patchVotes,
   deleteComment,
   getUsers,
+  patchCommentVote
 } = require("./apiController");
 
-const { apiRouter, topicsRouter, articlesRouter} = require("./routers/");
+const { apiRouter, topicsRouter, articlesRouter } = require("./routers/");
 
 app.use(express.json());
 
@@ -18,12 +16,15 @@ app.use("/api", apiRouter);
 app.use("/api/topics", topicsRouter);
 app.use("/api/articles", articlesRouter);
 
+// ________to-re-route-the-below_______________________________
 
 app.get("/api/articles/:article_id/comments", getCommentById);
 app.use(express.json());
 app.post("/api/articles/:article_id/comments", postComment);
+app.patch("/api/comments/:comment_id", patchCommentVote)
 
-app.get("/api/users", getUsers);
+app.get("/api/users/", getUsers);
+app.get("/api/users/:username", getUsers);
 
 app.delete("/api/comments/:comments_id", deleteComment);
 

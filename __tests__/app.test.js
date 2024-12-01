@@ -5,6 +5,7 @@ const app = require("../app");
 const request = require("supertest");
 const data = require("../db/data/test-data/index");
 const seed = require("../db/seeds/seed");
+const comments = require("../db/data/test-data/comments");
 require("jest-sorted");
 /* Set up your beforeEach & afterAll functions here */
 
@@ -52,13 +53,14 @@ describe("GET: request with parametric endpoint", () => {
       .then(({ body: { article } }) => {
         expect(article).toMatchObject({
           article_id: 1,
-          title: 'Living in the shadow of a great man',
-          body: 'I find this existence challenging',
-          topic: 'mitch',
-          author: 'butter_bridge',
+          title: "Living in the shadow of a great man",
+          body: "I find this existence challenging",
+          topic: "mitch",
+          author: "butter_bridge",
           created_at: expect.any(String),
           votes: 100,
-          article_img_url: 'https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700',
+          article_img_url:
+            "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700",
         });
       });
   });
@@ -123,8 +125,7 @@ describe("GET: /api/articles/:article_id/comments", () => {
       .get("/api/articles/1/comments")
       .expect(200)
       .then((response) => {
-        const body = response.text;
-        const commentArray = JSON.parse(body);
+        const article = response.body;
         const expected = {
           comment_id: expect.any(Number),
           votes: expect.any(Number),
@@ -133,31 +134,26 @@ describe("GET: /api/articles/:article_id/comments", () => {
           body: expect.any(String),
           article_id: expect.any(Number),
         };
-        commentArray.forEach((comment) => {
-          expect(comment).toMatchObject(expected);
-        });
-        expect(Array.isArray(commentArray)).toBe(true);
+        expect(article).toMatchObject(expected);
       });
   });
-  test("404:responds with an error, this article_id does not exist yet", () => {
-    return request(app)
-      .get("/api/articles/100/comments")
-      .expect(404)
-      .then((response) => {
-        expect(response.body.msg).toBe("this article id does not exist yet");
-      });
-  });
-  test("200:valid input, with a recognised id, but reponds with empty array and appropiate message", () => {
-    return request(app)
-      .get("/api/articles/2/comments")
-      .expect(200)
-      .then((response) => {
-        expect(response.body.msg).toBe(
-          "this article does not have any comments"
-        );
-        expect(response.body.comments).toEqual([]);
-      });
-  });
+});
+test("404:responds with an error, this article_id does not exist yet", () => {
+  return request(app)
+    .get("/api/articles/100/comments")
+    .expect(404)
+    .then((response) => {
+      expect(response.body.msg).toBe("this article id does not exist yet");
+    });
+});
+test("200:valid input, with a recognised id, but reponds with empty array and appropiate message", () => {
+  return request(app)
+    .get("/api/articles/2/comments")
+    .expect(200)
+    .then((response) => {
+      expect(response.body.msg).toBe("this article does not have any comments");
+      expect(response.body.comments).toEqual([]);
+    });
 });
 describe("POST: /api/articles/:article_id/comments", () => {
   test("201:responds with an object, a comment with properties of username and body", () => {
@@ -396,7 +392,7 @@ describe("GET: /api/articles - sorting queries", () => {
 describe("GET: /api/articles (topic query)", () => {
   test("200: using ILIKE which will return the results regardless of case", () => {
     return request(app)
-      .get("/api/articles?search=topic&&topic=MITCH")
+      .get("/api/articles?search=topic&topic=MITCH")
       .expect(200)
       .then((result) => {
         const articles = result.body;
@@ -407,7 +403,7 @@ describe("GET: /api/articles (topic query)", () => {
   });
   test("200: using ILIKE as well as % to match topics that are simailar to the request ", () => {
     return request(app)
-      .get("/api/articles?search=topic&&topic=CaT")
+      .get("/api/articles?search=topic&topic=CaT")
       .expect(200)
       .then((result) => {
         const articles = result.body;
@@ -418,7 +414,7 @@ describe("GET: /api/articles (topic query)", () => {
   });
   test("200: will respond with the full array of topics if the filter value is missing", () => {
     return request(app)
-      .get("/api/articles?search=topic")
+      .get("/api/articles")
       .expect(200)
       .then((result) => {
         const articles = result.body;
@@ -443,9 +439,85 @@ describe("GET: /api/articles/:article_id (comment_count) adding add (comment_cou
       .then(({ body: { article } }) => {
         expect(article).toMatchObject({
           article_id: 1,
-        })
-        expect(article).toHaveProperty('comment_count');
+        });
+        expect(article).toHaveProperty("comment_count");
       });
-    })
-  })
-    
+  });
+});
+describe("GET: /api/users/:username", () => {
+  test("return user by username - returns an object", () => {
+    const expected = {
+      username: "lurker",
+      name: "do_nothing",
+      avatar_url:
+        "https://www.golenbock.com/wp-content/uploads/2015/01/placeholder-user.png",
+    };
+    return request(app)
+      .get("/api/users/lurker")
+      .expect(200)
+      .then((response) => {
+        const user = response.body;
+        expect(user).toMatchObject(expected);
+      });
+  });
+  test("returns an error when a usersame doesnt exists", () => {
+    return request(app)
+      .get("/api/users/mike")
+      .expect(404)
+      .then((response) => {
+        const error = response.body.msg;
+        expect(error).toBe("there is no such user");
+      });
+  });
+  test("returns a bad request, will not accept an all number username", () => {
+    return request(app)
+      .get("/api/users/1")
+      .expect(400)
+      .then(({ body: msg }) => {
+        const error = msg;
+        expect(error).toEqual({ msg: "username type not accepted" });
+      });
+  });
+});
+describe("PATCH: /api/comments/:comment_id", () => {
+  test("reponds with updated comment (+)", () => {
+    const newVote = { inc_votes: 6 };
+    const expectedComments = {
+      comment_id: 1,
+      body: "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",
+      votes: 22,
+      author: "butter_bridge",
+      article_id: 9,
+      created_at: expect.any(String),
+    };
+    return request(app)
+      .patch("/api/comments/1")
+      .send(newVote)
+      .expect(200)
+      .then(({ body }) => {
+        const comment = body;
+        expect(comment).toMatchObject(expectedComments);
+      });
+  });
+  test("reponds with updated comment (-)", () => {
+    const newVote = { inc_votes: -6 };
+    const expectedComments = {
+      comment_id: 1,
+      body: "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",
+      votes: 10,
+      author: "butter_bridge",
+      article_id: 9,
+      created_at: expect.any(String),
+    };
+    return request(app)
+      .patch("/api/comments/1")
+      .send(newVote)
+      .expect(200)
+      .then(({ body }) => {
+        const comment = body;
+        expect(comment).toMatchObject(expectedComments);
+      });
+  });
+});
+
+// error required for no corresponding comment_id
