@@ -1,22 +1,17 @@
 const endpointsJson = require("./endpoints.json");
 
 const {
-  topicFinder,
   getById,
-  articleGetter,
   commentById,
   postNewComment,
-  votePatchAdd,
-  votePatchMinus,
   deleteById,
   getUser,
+  getUserByUsername,
 } = require("./Models/api.model");
 
+const { voteCountComments } = require("./Models/commentVoteModel");
 const { checkIdExists } = require("./Models/idChecker.model");
 const { commentIdExists } = require("./Models/commentIdChecker");
-const { columnSorter } = require("./Models/columnSorter");
-const { topicFilter } = require("./Models/topicFilter");
-const { returnAllTopics } = require("./Models/returnAllTopics");
 
 exports.getApi = (req, res, next) => {
   res.status(200).send({ endpoints: endpointsJson });
@@ -37,8 +32,6 @@ exports.getArticle = (req, res, next) => {
       next(err);
     });
 };
-
-
 
 exports.getCommentById = (req, res, next) => {
   const { article_id } = req.params;
@@ -77,7 +70,6 @@ exports.postComment = (req, res, next) => {
     });
 };
 
-
 exports.deleteComment = (req, res, next) => {
   const { comments_id } = req.params;
   const commentIdInt = parseInt(comments_id);
@@ -95,7 +87,35 @@ exports.deleteComment = (req, res, next) => {
 };
 
 exports.getUsers = (req, res, next) => {
-  return getUser().then((result) => {
-    res.status(200).send(result);
+  const { username } = req.params;
+
+  if (username && (typeof username !== "string" || !isNaN(username))) {
+    return res.status(400).send({ msg: "username type not accepted" });
+  }
+
+  if (username) {
+    return getUserByUsername(username)
+      .then((user) => {
+        res.status(200).send(user);
+      })
+      .catch((err) => {
+        next(err);
+      });
+  }
+  return getUser()
+    .then((result) => {
+      res.status(200).send(result);
+    })
+    .catch((err) => {
+      next(err);
+    });
+};
+
+exports.patchCommentVote = (req, res, next) => {
+  const { comment_id } = req.params;
+  const { inc_votes } = req.body;
+ 
+  return voteCountComments(comment_id, inc_votes).then((comment) => {
+    res.status(200).send(comment);
   });
 };
