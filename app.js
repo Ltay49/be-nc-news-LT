@@ -8,6 +8,8 @@ const {
   patchCommentVote
 } = require("./apiController");
 
+const cors = require('cors');
+app.use(cors());
 const { apiRouter, topicsRouter, articlesRouter } = require("./routers/");
 
 app.use(express.json());
@@ -22,7 +24,7 @@ app.get("/api/articles/:article_id/comments", getCommentById);
 app.use(express.json());
 app.post("/api/articles/:article_id/comments", postComment);
 app.patch("/api/comments/:comment_id", patchCommentVote)
-
+// app.post("/api/articles")
 app.get("/api/users/", getUsers);
 app.get("/api/users/:username", getUsers);
 
