@@ -70,11 +70,11 @@ article_id
 FROM comments
 WHERE article_id = $1
 ORDER BY created_at DESC;`;
-  return db.query(query, [article_id]).then(({ rows }) => {
+  return db.query(query, [article_id]).then(({rows}) => {
     if(rows.length === 0){
       return rows
     }
-    return rows[0];
+    return rows;
   });
 };
 

@@ -125,16 +125,10 @@ describe("GET: /api/articles/:article_id/comments", () => {
       .get("/api/articles/1/comments")
       .expect(200)
       .then((response) => {
-        const article = response.body;
-        const expected = {
-          comment_id: expect.any(Number),
-          votes: expect.any(Number),
-          created_at: expect.any(String),
-          author: expect.any(String),
-          body: expect.any(String),
-          article_id: expect.any(Number),
-        };
-        expect(article).toMatchObject(expected);
+        expect(Array.isArray(response.body)).toBe(true);
+        response.body.forEach((comment) => {
+          expect(comment.article_id).toBe(1);
+        });
       });
   });
 });
